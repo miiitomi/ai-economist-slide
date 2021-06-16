@@ -237,7 +237,7 @@
     \item エージェントのコイン保有 $\bm{x}^c = (x_1^c, \dots, x_N^c)$ に対し, equalityを次で定義:
     \[ {\bf{eq}}(\bm{x}^c) = 1 - {\bf{gini}}(\bm{x}^c)\cdot \frac{N}{N-1},\ \ \ 0 \le {\bf eq}(\bm{x}^c)\le 1.\tag{7} \]
     where
-    \[ {\bf{gini}}(\bm{x}^c) = \frac{\sum_{i=1}^N\sum_{j=1}^N |x_{i}-c - x_{j}^c|}{2N \sum_{i=1}^N x_{i}^c},
+    \[ {\bf{gini}}(\bm{x}^c) = \frac{\sum_{i=1}^N\sum_{j=1}^N |x_{i}^c - x_{j}^c|}{2N \sum_{i=1}^N x_{i}^c},
     \ \ \ 0 \le {\bf gini}(\bm{x}^c) \le \frac{N-1}{N}\tag{8} \]
     \begin{itemize}
         \item ${\bf eq}$は, $1$で完全に平等(全員同じ収入), $0$で完全に不平等(1人が全コインを独占).
@@ -259,7 +259,206 @@
 \begin{frame}{}{}
 {\bf The Planner's Problem.}
 \begin{itemize}
-    \item 
+    \item Social Plannerは,
+    \begin{itemize}
+        \item agentの保有資源・コイン $\bm{x}_{i,t}$, フィールドの状態（agent・資源の位置）とmarketの状況は観測可能,
+        \item 各agentのskillは直接には観測できない.
+    \end{itemize}
+    \item Plannerの最大化問題は,
+    \[ \max_{\pi_p} \mathbb{E}_{\tau \sim \pi_p, \bm{a} \sim \bm{\pi}, s'\sim \mathscr{T}}\left[{\bf swf}_0+\sum_{t=1}^H\gamma^t\underbrace{({\bf swf}_t-{\bf swf}_{t-1})}_{=r_{p,t}}\right]. \tag{12} \]
 \end{itemize}
+\end{frame}
+
+\subsection{3.3 Inner-Outer-Loop Reinforcement Learning}
+\begin{frame}{3.3 Inner-Outer-Loop Reinforcement Learning}{}
+    \begin{columns}[t]
+        \begin{column}[]{0.6\textwidth}
+            \begin{center}
+                \includegraphics[width=9cm]{figure6.png}
+            \end{center}
+        \end{column}
+        \begin{column}[]{0.4\textwidth}
+            \begin{itemize}
+                \item この状況では, Inner loopでagentsが行動を選んで学習し, Outer loopでplannerが税制を選んで学習することになる.
+                \item Inner loopでのAgentの学習行動と, outer loopでplannerの選ぶ税制が相互に影響し合うため, 報酬がagentとplanner双方にとって不安定になる.
+            \end{itemize}
+        \end{column}
+    \end{columns}
+\end{frame}
+
+\begin{frame}
+    \begin{center}
+        \includegraphics[width=9.3cm]{algorithm1.png}
+    \end{center}
+\end{frame}
+
+\section{4. Improved Social Outcomes with AI Agents}
+\begin{frame}{4. Improved Social Outcomes with AI Agents}{}
+{\large\bf 4.1 Baseline Methods}
+\begin{itemize}
+    \item 次の4つのtax modelを比較する.
+    \begin{itemize}
+        \item free-market (no taxes)
+        \item US federal single-filer 2018 tax schedule
+        \item Saez tax formula (adapted for a multi-period setting)
+        \item AI Economist planner
+    \end{itemize}
+    \item Tax bracketは, 全てのtax modelに共通で, 2018 US federal incom taxをもとに1/1000にスケーリングした以下を用いる.
+    \[ \bm{m} = [0, 9.7, 39.475, 84.2, 160.725, 204.100, 510.3, \infty]. \tag{15} \]
+\end{itemize}
+\end{frame}
+
+\begin{frame}{}{}
+{\bf US Federal Income Tax Rates (Single-filer, 2018).}
+\begin{itemize}
+    \item 2018 US federal income taxをもとに, bracket tax ratesは, 
+    \[ \bm{\tau} = [0.1, 0.12, 0.22, 0.24, 0.32, 0.35, 0.37] \tag{16} \]
+    とする.
+\end{itemize}    
+\end{frame}
+
+\begin{frame}{}{}
+{\bf Saez Tax Formula (single-period)}
+\begin{itemize}
+    \item Saez [2001]をもとに, まずsingle-period economyでのoptimal tax ratesを求める.
+    \item $f, F$は(pre-tax)収入の分布のprobability densityとcummulative distribution functionとし, plannerはそれらを観測できるとする.
+    \item Saez [2001]では, まずlinear-weighted social welfare functions (11)に対し, social marginal welfare weights
+    \[ g_i = \frac{\mathrm{d}{\bf swf}}{\mathrm{d} u_i} \frac{\mathrm{d} u_i}{\mathrm{d} x_{i}^c} = \omega_i \frac{\mathrm{d} u_i}{\mathrm{d} x_{i}^c}.  \]
+    を求める.
+    \item これを我々のモデルに当てはめるために$g_i = \frac{1}{z_i}$とし, さらにこれをnormalizeしてよい $\sum_{i \in \mathscr{T}}g_i = 1$.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{}{}
+    \begin{itemize}
+        \item $\alpha(z)$を, the marginal average income at income z, normalized by the fraction of incomes above z, つまり,
+        \[ \alpha(z) := \frac{z \cdot f(z)}{1 - F(z)}. \tag{18}\]
+        \item $G(z)$は, normalized, reverse cumulative Pareto weight over incomes above a threshold z
+        \[ G(z) := \frac{1}{1 - F(z)}\int_{z' = z}^\infty f(z')g(z') \mathrm{d}z'. \tag{19}\]
+        \item また, 弾力性(elasticity) $e(z)$を, average sensitivity of an agent’s income to changes in the tax rate, つまり
+        \[e(z) = \frac{\mathrm{d}z / z}{\mathrm{d}(1 - \tau(z))/(1-\tau(z))}. \tag{20}\]
+        \item Saez [2001]によると, optimal marginal tax-rateは
+        \[ \tau(z) = \frac{1 - G(z)}{1 - G(z) + \alpha(z) e(z)} \tag{21}\]
+        となり, これはincome distributionとelasticityに依存して決まる.
+    \end{itemize}
+\end{frame}
+
+\begin{frame}{}{}
+{\bf Saez Tax Formula (multi-period)}
+\begin{itemize}
+    \item Saez formula (21) を使うには, income elasticity $e(z)$ の推定が必要.
+    \item Gruber and Saez [2002]に従い, constant tax elasticity $\tilde{e}$ を仮定すると, 
+    \[ z_t = z^0 \cdot (1- \tau_t)^{\tilde{e}}. \tag{22} \]
+    \item したがって, 
+    \[ \log(z_t) = \tilde{e} \cdot \log(1 - \tau_t) + \log(z^0) \tag{23} \]
+    を過去のtax periodのデータからOLSで推定して用いる.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{}{}
+    \begin{itemize}
+        \item AI Economistは, deep neural networkにより各bucketのmarginal tax rateを決める.
+        \[ \tau \sim \pi_p\left( o^{\mathrm{world}}_{p,t}, o^{\mathrm{agent}}_{p,t}, o^{\mathrm{market}}_{p,t}, o^{\mathrm{tax}}_{p,t}, h_{p, t-1} ; \phi \right). \tag{24} \]
+        \begin{itemize}
+            \item Basic network architectureはagentと同様(Figure 3).
+            \item agentとplannerは持つobservationが異なる（plannerはフィールド全体が見れるが, agentのprivate skillは見れない）.
+        \end{itemize}
+    \end{itemize}
+\end{frame}
+
+\subsection{4.2 Training Strategy: Two-phase Training and Tax Curricula}
+\begin{frame}{4.2 Training Strategy: Two-phase Training and Tax Curricula}
+\begin{itemize}
+    \item Section 3.3で述べたように, このjoint optimizationは不安定性をもたらす.
+    \item 学習を安定化させるため, ここでは次のtwo-pahse training approachを行った.
+    \begin{itemize}
+        \item First phaze: agent modelsの集合に対し, 無課税(no-tax scenario)で学習させる.
+        \item Second phaze: 税モデルを融合にし, エージェント・プランナーの学習を継続する.\\
+                また突然の税導入による不安定性を回避するため, 限界税率の上限を$10\%$から$100\%$に徐々に引き上げる.
+    \end{itemize}
+    \item また, planner policyにentropy regularizationを行うことも効果的だった.
+    \begin{itemize}
+        \item Entropy regularizationは, policy gradient objectiveに次のadditional, weighted term
+        \[ {\bf entropy}(\pi) = - \mathbb{E}_{a \sim \pi(\cdot \mid s)} [\log\pi(a \mid s)]. \]
+        を加える（Williams and Peng [1991], Mnih et al. [2016]）.
+    \end{itemize}
+\end{itemize}
+\end{frame}
+
+\begin{frame}{}{}
+\begin{itemize}
+    \item 実験はRLlib flamework [Liang et al., 2018]を用いて実施.
+    \item またPolicy gradientsの計算に, proximal policy gradients [Schulman et al., 2017]とAdam optimizer [Kingma and Ba, 2014] を使う.
+    \item サンプルは60のenvironment replicasから平行して集め, sampling horizonは200 timestepsとする.
+    \item 全ての実験で, 400 million sampleのphase two trainingを実施し, これはagentとplanner modelはstable policyへの収束に十分であった.
+\end{itemize}
+\end{frame}
+
+\subsection{4.3 Equality, Productivity, and Social Welfare Metrics}
+\begin{frame}{4.3 Equality, Productivity, and Social Welfare Metrics}{}
+    \begin{center}
+        \includegraphics[width=10cm]{figure8.png}
+    \end{center}
+    \begin{itemize}
+        \item Figure 8はepisode終了時の各tax modelでのeconomic outcomesの比較.
+        \item Taxは常にproductivityを下げるが, その下り幅はAI Economistが最も少ない.
+        \item Income equality（$1 - \mathrm{Gini\ index}$）は, AI economistで最も高い.
+        \item EqualityとProductivityの積もAI economistが最も高く, 次に高いSaez formulaと比べても$16\%$高い.
+    \end{itemize}
+\end{frame}
+
+\begin{frame}{}{}
+    \begin{center}
+        \includegraphics[width=12cm]{figure7.png}
+    \end{center}
+\end{frame}
+
+\subsection{4.4 Tax Schedules and Wealth Redistribution after Taxes and Subsidies}
+\begin{frame}{4.4 Tax Schedules and Wealth Redistribution after Taxes and Subsidies}{}
+    {\bf Comparing Tax Schedule}
+    \begin{columns}
+        \begin{column}{0.5\textwidth}
+            \begin{center}
+                \includegraphics[width=6cm]{figure9.png}
+            \end{center}
+        \end{column}
+        \begin{column}{0.5\textwidth}
+            \begin{itemize}
+                \item Figure 9は, 各tax modelでのmarginal tax rateの比較.
+                \item US federalは, higher incomeに対してmarginal tax rateは上がっていく.
+                \item Saez formulaでは概ね逆.
+                \item AI Economistはそのblendになってる.
+            \end{itemize}
+        \end{column}
+    \end{columns}
+\end{frame}
+
+\begin{frame}{}{}
+    {\bf Effective Tax After Redistribution.}
+    \begin{center}
+        \includegraphics[width=10cm]{figure11.png}
+    \end{center}
+\end{frame}
+
+\begin{frame}{}{}
+{\bf The Impact of Tax on Economic Activity}
+\begin{center}
+    \includegraphics[width=10cm]{figure12.png}
+\end{center}
+\begin{itemize}
+    \item Figure 12は, Saez frameworkとAI economistでのagentの行動の比較.
+    \item AI economistでは, high-skill workerはより資源を集めることより買ってbuildingすることに特化し, low-skill workersはより資源を集めるようになっている.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{4.5 Tax-Gaming Strategies}{}
+    \begin{center}
+        \includegraphics[width=11cm]{figure13.png}
+    \end{center}
+    {\footnotesize\begin{itemize}
+        \item Figure 13はAI economistでのhigh-skilled workerの1 episodeのincomeの推移.
+        \item 高収入のtax periodと低収入のtax periodが交互に起きている.
+        \item Agentは収入をばらつかせることで課税額を抑えるように行動している(Saezでも)
+    \end{itemize}}
 \end{frame}
 \end{document}
