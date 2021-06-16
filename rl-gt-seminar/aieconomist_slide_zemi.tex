@@ -17,13 +17,14 @@
 }
 \subtitle{Stephan Zheng, Alexander Trott, Sunil Srinivasa, Nikhil Naik, Melvin Gruesbeck, David C. Parkes, and Richard Socher, 2020, mimeo.}
 \author{Presenter: Yoji Tomita}
-\date{RL-GTゼミ June 17, 2021}
+\date{RL-GT seminar: June 17, 2021}
 
 \begin{document}
 
 \maketitle
 
 \begin{frame}{Table of Contents}
+    \setcounter{tocdepth}{1}
     \tableofcontents
 \end{frame}
 
@@ -460,5 +461,104 @@
         \item 高収入のtax periodと低収入のtax periodが交互に起きている.
         \item Agentは収入をばらつかせることで課税額を抑えるように行動している(Saezでも)
     \end{itemize}}
+\end{frame}
+
+\section{5. Improved Social Outcomes with Human Participants}
+
+\subsection{5. Improved Social Outcomes with Human Participants}
+\begin{frame}{5. Improved Social Outcomes with Human Participants}{}
+    \begin{itemize}
+        \item AI-learned tax policyが人間が参加する経済シミュレーションでも結果をよくするか検証する.
+        \item Amazon Mechanical Turk (MTurk) platformにおいて実験を行った.
+    \end{itemize}
+\end{frame}
+
+\subsection{5.1 Experimemntal Methodology}
+\begin{frame}{5.1 Experimemntal Methodology}{}
+    {\bf Simulation Environment for Human Participants.}
+    \begin{itemize}
+        \item 設定は基本的に同じだが, 若干の変更がある:
+        \begin{itemize}
+            \item Tradingは行わないようにする.
+            \item Labor costがかかるのはbuild actionのみとし, movingとcollecting resourcesはzero costとする. ただしbuilding actionのcostは$50\%$増し.
+            \item 各エピソードは5分間で, frame rateは10 frame per second.
+            \item 各エピソードは3000 timesteps. 各tax periodは300 timesteps.
+        \end{itemize}
+    \end{itemize}
+\end{frame}
+
+\begin{frame}{}{}
+\begin{columns}
+    \begin{column}{0.6\textwidth}
+        {\bf Zero-shot Transfer of Tax Models.}
+        \begin{itemize}
+            \item Tax modelsもAI-only settingに依拠する.
+            \item US federal tax ratesはそのまま.
+            \item Saez modelは, training後の1エピソード間の平均tax rateとする.
+            \item AI economistは, AI実験から効果的なAI-driven tax scheduleを1つ使った("Camelback" model)
+        \end{itemize}
+    \end{column}
+    \begin{column}{0.4\textwidth}
+        　\\
+        \includegraphics[width=4.7cm]{figure15.png}
+    \end{column}
+\end{columns}
+\end{frame}
+
+\begin{frame}{}{}
+{\bf Payment.}
+\begin{itemize}
+    \item 各参加者はbase pay $\$5$ とvariable bonus最大 $\$10$ を得る.
+    \item このUS dollar(USD) bonusは, \[\mathrm{USD\ bonus} = \mathrm{Utility}\times 0.06, \tag{26}\]で計算される.
+    \item 平均の合計paymentは, $\$ 11.26$ だった.
+\end{itemize}
+\end{frame}
+
+\subsection{5.2 Results}
+\begin{frame}{5.2 Results}{}
+    \begin{columns}
+        \begin{column}{0.5\textwidth}
+            {\bf Improved Social Outcomes.}
+            \begin{itemize}
+                \item EqualityとProductivityの積は, ai economistの結果はUS federal, Saez formulaと比べて悪くなく, Free marketより有意に高かった.
+                \item おおむねAI egentsでの実験とconsistentな結果.
+            \end{itemize}
+        \end{column}
+        \begin{column}{0.5\textwidth}
+            \begin{center}
+                \includegraphics[width=7cm]{figure17.png}
+            \end{center}
+        \end{column}
+    \end{columns}
+\end{frame}
+
+\begin{frame}{}{}
+    \begin{columns}
+        \begin{column}{0.6\textwidth}
+            \begin{itemize}
+                \item Inverse post-tax endowmentsをweightとしたsocial welfare functionも評価した:
+                \[
+                    {\bf swf}_{H}(\bm{x}_H^c, \bm{l}_H) = \sum_{i=1}^N \omega_i \cdot u_i\left(x_{i,H}^c, l_{i,H}\right), \tag{27}
+                \]
+                where
+                \[\omega_i = \frac{\tilde{\omega}_i}{\sum_j \tilde{\omega}_j},
+                \ \ \ \tilde{\omega}_i = \frac{1}{x^c_{i, H}}.\]
+                \item AI economistは他の全てのbaselineより有意に高かった.
+            \end{itemize}
+        \end{column}
+        \begin{column}{0.4\textwidth}
+            \includegraphics[width=6cm]{figure18.png}
+        \end{column}
+    \end{columns}
+\end{frame}
+
+\section{6. Conclusion}
+
+\begin{frame}{6. Conclusion}{}
+    \begin{itemize}
+        \item 生産性と平等性のtrade-offを上手くバランスする最適な税制を求めることは重要だが難しい.
+        \item 経済シミュレーションにおいて, deep RLを用いてsocial plannerに最適な税制を学習させることが考えられた.
+        \item AI agentsと人の被験者による実験の双方で, ai economistはbaseline tax models（free market, US federal, Saez framework）と比較して高い水準でequalityとproductivityのtrade-offを達成した.
+    \end{itemize}
 \end{frame}
 \end{document}
