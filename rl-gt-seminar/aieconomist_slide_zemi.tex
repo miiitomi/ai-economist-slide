@@ -77,6 +77,12 @@
 \end{itemize}
 \end{frame}
 
+\begin{frame}
+    \begin{center}
+        \includegraphics[width=15cm]{table1.png}
+    \end{center}
+\end{frame}
+
 \subsection{2.2 Environment Rules and Dynamics}
 \begin{frame}{2.2 Environment Rules and Dynamics}{}
 {\bf Gather-and-Build game}
@@ -157,4 +163,103 @@
 \end{itemize}
 \end{frame}
 
+\begin{frame}{}{}
+    \begin{center}
+        \includegraphics[width=10.3cm]{figure3.png}
+    \end{center}
+\end{frame}
+
+\begin{frame}{}{}
+    {\bf Emergent Behavior of AI Agents}
+\begin{columns}[t]
+    \begin{column}[]{0.6\textwidth}
+        \begin{center}
+            \includegraphics[width=9cm]{figure4.png}
+        \end{center}
+    \end{column}
+    \begin{column}[]{0.4\textwidth}
+        \begin{itemize}
+            \item 左図はno-tax下でtrain後のAI agentsの1 episodeの行動の例.
+            \item low-skill agents（紺,水）は資源を集めてmarketで売ることに徹している.
+            \item high-skill agent（オレンジ）はmarketで資源を買って家を建てている.
+            \item 黄色は最初は家を建ててるが, のちに資源を得る方にスイッチしている.
+        \end{itemize}
+    \end{column}
+    
+\end{columns}
+\end{frame}
+
+\section{3. Machine Learning for Optimal Tax Policies}
+\begin{frame}{3. Machine Learning for Optimal Tax Policies}
+    \begin{itemize}
+        \item 課税と再分配を行う social planner を導入する.
+        \item Social plannerは, 生産性と平等性のtrade-offに直面している.
+        \begin{itemize}
+            \item 無課税（free-market）では生産性は最大化されるが, 不平等.
+            \item 課税・再分配を行うと平等性が増すが, 生産性が落ちる.
+        \end{itemize}
+        　\\
+        \item ここでは, free-market, US-federal, Saez framework, AI economistによるsocial plannerを試す.
+    \end{itemize}
+\end{frame}
+
+\subsection{3.1 Periodic Taxes with Bracketed Schedules}
+\begin{frame}{3.1 Periodic Taxes with Bracketed Schedules}{}
+{\bf Income Taxes.}
+    \begin{itemize}
+        \item Tax periodは $M$ steps続く（実験では$M = H/10$とし, 1 episodeに10 tax periodsがあるものとする）
+        \item ピリオド $p$ の税は, time step $t$ から $t + M$ までの収入 $z_i^p$ に課される.\\
+                　
+        \item Tax periodの初めに, social plannerはtax schedule $T(z)$ を決めて公表する.
+        \begin{itemize}
+            \item 各agent $i$ は, 収入 $z_i^p$ に応じて $T(z)$ を支払う.
+            \item 集められた税は, 全agentに平等に分配される.
+            \item よって, 分配後のagent $i$ の収入は,
+            \[ \tilde{z}_i^p = z_i^p - T(z_i^p) + \frac{1}{N}\sum_{j=1}^N T\left(z_j^p\right). \tag{5}\]
+        \end{itemize}
+    \end{itemize}
+\end{frame}
+
+\begin{frame}{}{}
+{\bf Bracketed Tax Schedules.}
+\begin{itemize}
+    \item Scheme間の比較を可能にするため, tax scheduleは次のように "bracketed" されたもののみを考える.
+    \item Cut-off income levels $\{m_b\}_{b = 0}^B$ s.t. $0 = m_0 \le m_1 \le \dots \le m_{B-1}\le m_B = +\infty$ が先に与えられている.
+    \item Social plannerは, 各bracket $b$ に含まれる収入に対して適用されるmarginal tax rate $\tau_b \in [0,1]$を選ぶことで, tax schedule $T(\cdot)$ を決定する.
+    \[ T(z) = \sum_{b = 0}^{B-1} \tau_b \cdot \left((m_{b+1}-m_{b}) \cdot 1[z > m_{b+1}] + (z - m_b)\cdot 1[m_b < z \le m_{b+1}]\right).\]
+\end{itemize}
+\end{frame}
+
+\begin{frame}{3.2 Optimal Taxation}{}
+{\bf Social Welfare Functions}
+\begin{itemize}
+    \item Social plannerの目的関数であるsocial welfare functionは, 生産性と平等性のtrade-offを組み込めるように次のように決める.
+    \item エージェントのコイン保有 $\bm{x}^c = (x_1^c, \dots, x_N^c)$ に対し, equalityを次で定義:
+    \[ {\bf{eq}}(\bm{x}^c) = 1 - {\bf{gini}}(\bm{x}^c)\cdot \frac{N}{N-1},\ \ \ 0 \le {\bf eq}(\bm{x}^c)\le 1.\tag{7} \]
+    where
+    \[ {\bf{gini}}(\bm{x}^c) = \frac{\sum_{i=1}^N\sum_{j=1}^N |x_{i}-c - x_{j}^c|}{2N \sum_{i=1}^N x_{i}^c},
+    \ \ \ 0 \le {\bf gini}(\bm{x}^c) \le \frac{N-1}{N}\tag{8} \]
+    \begin{itemize}
+        \item ${\bf eq}$は, $1$で完全に平等(全員同じ収入), $0$で完全に不平等(1人が全コインを独占).
+    \end{itemize}
+\end{itemize}
+\end{frame}
+
+\begin{frame}{}{}
+    \begin{itemize}
+        \item 生産性は, 
+        \[ {\bf prod}(\bm{x}^c) = \sum_{i=1}^N x_{i}^c. \tag{9} \]
+        \item この ${\bf eq}$ と ${\bf prod}$ をsocial welfare functionとする.\footnote{Social welfare functionとして, weight $\omega_i \ge 0$ を用いて
+        \[ {\bf swf}_t(\bm{x}_t^c, \bm{l}_t) = \sum_{i = 1}^N \omega_i \cdot u_i\left(x_{i,t}^c, l_{i,t}\right). \tag{11}\]
+        を用いることも可能.}
+        \[ {\bf swf}_t(\bm{x}_t^c) = {\bf eq}_t(\bm{x}_t^c) \cdot {\bf prod}_t (\bm{x}_t^c). \tag{10}\]
+    \end{itemize}
+\end{frame}
+
+\begin{frame}{}{}
+{\bf The Planner's Problem.}
+\begin{itemize}
+    \item 
+\end{itemize}
+\end{frame}
 \end{document}
