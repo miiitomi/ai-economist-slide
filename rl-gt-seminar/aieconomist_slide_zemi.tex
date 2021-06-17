@@ -31,7 +31,21 @@
 \section{1. Introduction}
 \begin{frame}{1. Introduction}
     \begin{itemize}
-        \item イントロダクション
+        \item 最適な課税・再分配制度のデザインは重要だが難しい問題である.
+        \item その難しさの一因は, 生産性（productivity）と平等性（equality）のtrade-off:
+        \begin{itemize}
+            \item 税を低くすると, 経済行動が活発になり生産性は増すが不平等になる.
+            \item 税を高く再分配を厚くすると, 経済行動が抑制され生産性が落ちる.
+        \end{itemize}
+        　\\
+        \item Optimal tax theoryの分野で研究が進むが明確な答えは得られていない:
+        \begin{itemize}
+            \item 税率変化の経済行動への影響（elasticity）の推定が困難.
+            \item 税制をフィールド実験することはほぼ不可能.
+        \end{itemize}
+        　\\
+        \item この論文では, 経済シミュレーションゲームにおいて, 税制を決定するSocial plannerをdeep RLにより学習させることを考える.\\
+        $\to$ 経済主体をRL agentsとするシミュレーション実験, と人の被験者を用いた実験の双方で, AI economist による税制は生産性・平等性のtrade-offを高い水準で達成した.
     \end{itemize}
 \end{frame}
 
